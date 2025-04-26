@@ -2,13 +2,13 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from ultralytics import YOLO
-import shutil
-import os
+import numpy as np
+import cv2
+from io import BytesIO
 
-# Initialize FastAPI app
 app = FastAPI()
 
-# Allow all CORS
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,8 +17,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load YOLOv8 model
-model = YOLO('yolov8n.pt')
+model = None  # Global model
+
+@app.on_event("startup")
+async def load_model():
+    global model
+    model = YOLO('yolov8n.pt')
 
 @app.get("/")
 async def root():
@@ -28,14 +32,13 @@ async def root():
 async def ping():
     return {"status": "up"}
 
-
 @app.post("/detect")
 async def detect(file: UploadFile = File(...)):
-    temp_file = file.filename
-    with open(temp_file, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    contents = await file.read()  # Read file into memory
+    npimg = np.frombuffer(contents, np.uint8)  # Convert bytes to numpy array
+    img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)  # Decode numpy array into OpenCV image
 
-    results = model(temp_file)
+    results = model(img, save=False, save_txt=False, save_conf=False, verbose=False)
 
     detections = []
     for box in results[0].boxes:
@@ -43,7 +46,5 @@ async def detect(file: UploadFile = File(...)):
         confidence = round(float(box.conf[0].item()), 2)
         label = model.names[cls]
         detections.append({"object": label, "confidence": confidence})
-
-    os.remove(temp_file)
 
     return JSONResponse(content={"detections": detections})
