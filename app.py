@@ -20,6 +20,15 @@ app.add_middleware(
 # Load YOLOv8 model
 model = YOLO('yolov8n.pt')
 
+@app.get("/")
+async def root():
+    return {"message": "Server is running 🚀"}
+
+@app.get("/ping")
+async def ping():
+    return {"status": "up"}
+
+
 @app.post("/detect")
 async def detect(file: UploadFile = File(...)):
     temp_file = file.filename
