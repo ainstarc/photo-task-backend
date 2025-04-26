@@ -7,9 +7,10 @@ import cv2
 import logging
 from collections import defaultdict
 
+# Create FastAPI app
 app = FastAPI()
 
-# CORS
+# Enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -18,12 +19,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Logging
+# Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 model = None
 
+# Load YOLOv8 model at startup
 @app.on_event("startup")
 async def load_model():
     global model
@@ -31,17 +33,20 @@ async def load_model():
     model = YOLO('yolov8n.pt')
     logger.info("Model loaded.")
 
+# Basic root endpoint
 @app.get("/")
 async def root():
     return {"message": "Server is running 🚀"}
 
+# Ping endpoint
 @app.get("/ping")
 async def ping():
     return {"status": "up"}
 
+# Object detection endpoint
 @app.post("/detect")
 async def detect(file: UploadFile = File(...)):
-    logger.info(f"Received file: {file.filename}")
+    logger.info(f"Received file: {file.filename}, size: {file.size} bytes")
 
     contents = await file.read()
     npimg = np.frombuffer(contents, np.uint8)
@@ -57,7 +62,6 @@ async def detect(file: UploadFile = File(...)):
         label = model.names[cls]
         label_info[label].append(confidence)
 
-    # Prepare response
     detections = []
     for label, confs in label_info.items():
         detections.append({
