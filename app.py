@@ -24,14 +24,16 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 model = None
+MODEL_NAME = 'yolov8s.pt'
 
 # Load YOLOv8 model at startup
 @app.on_event("startup")
 async def load_model():
     global model
-    logger.info("Loading YOLOv8 model...")
-    model = YOLO('yolov8n.pt')
-    logger.info("Model loaded.")
+    logger.info(f"Loading model {MODEL_NAME}...")
+    model = YOLO(MODEL_NAME)
+    logger.info("Model loaded successfully.")
+
 
 # Basic root endpoint
 @app.get("/")
