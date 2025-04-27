@@ -5,3 +5,8 @@ __pycache__/
 .env
 venv/
 .vscode
+yolov8x.pt
+yolov8n.pt
+# yolov8s.pt
+yolov8m.pt
+yolov8l.pt

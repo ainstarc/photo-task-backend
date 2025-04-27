@@ -25,6 +25,10 @@ logger = logging.getLogger(__name__)
 
 model = None
 MODEL_NAME = 'yolov8s.pt'
+# MODEL_NAME = 'yolov8n.pt'  # Change to your model path
+# MODEL_NAME = 'yolov8l.pt'  # Change to your model path
+# MODEL_NAME = 'yolov8m.pt'  # Change to your model path
+# MODEL_NAME = 'yolov8x.pt'  # Change to your model path
 
 # Load YOLOv8 model at startup
 @app.on_event("startup")
